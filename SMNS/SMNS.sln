@@ -4,6 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SMNS.App", "SMNS\SMNS.App.csproj", "{E7E4C67E-397E-4F97-864D-232AC8BE586B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E9876FBC-DC0F-4C3E-9C44-02A15A54685B} = {E9876FBC-DC0F-4C3E-9C44-02A15A54685B}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SMNS.Infrastructure", "SMNS.Infrastructure\SMNS.Infrastructure.csproj", "{E9876FBC-DC0F-4C3E-9C44-02A15A54685B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{E7E4C67E-397E-4F97-864D-232AC8BE586B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7E4C67E-397E-4F97-864D-232AC8BE586B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7E4C67E-397E-4F97-864D-232AC8BE586B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9876FBC-DC0F-4C3E-9C44-02A15A54685B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9876FBC-DC0F-4C3E-9C44-02A15A54685B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9876FBC-DC0F-4C3E-9C44-02A15A54685B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9876FBC-DC0F-4C3E-9C44-02A15A54685B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
