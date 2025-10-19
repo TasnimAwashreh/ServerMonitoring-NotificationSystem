@@ -1,7 +1,6 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Threading.Channels;
 
 namespace SMNS.Infrastructure.MessageBroker.Receiver
 {
@@ -10,6 +9,9 @@ namespace SMNS.Infrastructure.MessageBroker.Receiver
         ConnectionFactory factory;
         IConnection? connection;
         IChannel? channel;
+
+        public event Action<string>? OnMessageReceived;
+
 
         public MessageReceiver(string hostName)
         {
@@ -35,7 +37,7 @@ namespace SMNS.Infrastructure.MessageBroker.Receiver
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($"- RECEIVED {message}");
+                OnMessageReceived?.Invoke(message);
                 return Task.CompletedTask;
             };
 

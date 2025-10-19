@@ -1,5 +1,7 @@
 ﻿using RabbitMQ.Client;
+using SMNS.Infrastructure.Models;
 using System.Text;
+using System.Text.Json;
 
 namespace SMNS.Infrastructure.MessageBroker.Publisher
 {
@@ -20,13 +22,15 @@ namespace SMNS.Infrastructure.MessageBroker.Publisher
             channel = await connection.CreateChannelAsync();
         }
 
-        public async Task PublishMessage(string queue, string message)
+        public async Task PublishMessage(string queue, ServerStatistics stats)
         {
             if (connection == null || channel == null)
-                throw new InvalidOperationException("RabbitMQ's connection or channel is not initialized");
+                throw new InvalidOperationException();
+            
             await channel.QueueDeclareAsync(queue: queue, durable: false, exclusive: false, autoDelete: false, arguments: null);
-            var body = Encoding.UTF8.GetBytes(message);
 
+            string serializedMessage = JsonSerializer.Serialize(stats);
+            var body = Encoding.UTF8.GetBytes(serializedMessage);
             await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queue, body: body);
         }
     }

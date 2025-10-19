@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Timers;
+using SMNS.Infrastructure.Models;
 
 namespace SMNS.Infrastructure.Monitoring
 {

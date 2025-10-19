@@ -1,35 +1,47 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using SMNS.App;
-using SMNS.Infrastructure.MessageBroker.Publisher;
+﻿using SMNS.App;
+using SMNS.Domain;
 using SMNS.Infrastructure.MessageBroker.Receiver;
+using SMNS.Infrastructure.AnomalyDetection;
+using Microsoft.AspNetCore.SignalR;
+
 
 public class Program
 {
     public static async Task Main()
     {
-        var services = new ServiceCollection();
-        services.AddConfiguration();
-        var serviceProvider = services.BuildServiceProvider();
+        var builder = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services.AddConfiguration();
+                services.AddSignalR();
+            })
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseUrls("http://localhost:5000");
+                webBuilder.Configure(app =>
+                {
+                    app.UseStaticFiles();
+                    app.UseRouting();
+                    app.UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapHub<NotificationHub>("/stats");
+                    });
+                });
+            });
+        var host = builder.Build();
 
-        var config = serviceProvider.GetRequiredService<IConfiguration>();
-        var serverIdentifier =  config["ServerStatisticsConfig:ServerIdentifier"] ?? "Unknown";
-        var statisticsTimer = serviceProvider.GetRequiredService<CollectStatisticsTimer>();
-        
-        var publisher = serviceProvider.GetRequiredService<IMessagePublisher>();
-        await publisher.CreateConnection();
+        var config = host.Services.GetRequiredService<IConfiguration>();
+        var receiver = host.Services.GetRequiredService<IMessageReceiver>();
+        var statisticsService = host.Services.GetRequiredService<IServerStatisticsService>();
+        var statsTimer = host.Services.GetRequiredService<StastisticsPublisherTimer>();
+        var notificationService = host.Services.GetRequiredService<INotificationService>();
 
-        var receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
-        await RunReceiver(receiver, serverIdentifier);
-    }
+        var serverIdentifier = config["ServerStatisticsConfig:ServerIdentifier"] ?? "Unknown";
 
-    public static async Task RunReceiver(IMessageReceiver receiver, string queue)
-    {
-        await receiver.CreateConnection();
-        var receiveTask = Task.Run(async () =>
-        {
-            await receiver.ReceiveMessage(queue);
-        });
-        await Task.Delay(-1);
+        var signalRTask = host.RunAsync();
+        var processor = new StatisticsProcessor(receiver, statisticsService, notificationService);
+        await processor.RunReceiverAsync(serverIdentifier);
+
+        await Task.WhenAll(signalRTask);
     }
 }

@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Server Notifications</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+</head>
+<body>
+    <h2>Server Stats Notifications</h2>
+    <div id="messages"></div>
+
+    <script>
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("http://localhost:5000/stats")
+      .build();
+
+    connection.on("SendMessage", (message) => {
+      const div = document.getElementById("messages");
+      const p = document.createElement("p");
+      p.textContent = message;
+      div.appendChild(p);
+    });
+
+    async function start() {
+      try {
+        await connection.start();
+        console.log("Connected to SignalR hub");
+      } catch (err) {
+        console.error(err);
+        setTimeout(start, 2000);
+      }
+    }
+
+    connection.onclose(start);
+    start();
+    </script>
+</body>
+</html>

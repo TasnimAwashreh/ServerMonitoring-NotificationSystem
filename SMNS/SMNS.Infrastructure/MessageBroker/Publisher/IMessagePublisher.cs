@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SMNS.Infrastructure.Models;
 
 namespace SMNS.Infrastructure.MessageBroker.Publisher
 {
     public interface IMessagePublisher
     {
         Task CreateConnection();
-        Task PublishMessage(string queue, string message);
+        Task PublishMessage(string queue, ServerStatistics stats);
     }
 }

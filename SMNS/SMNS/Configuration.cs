@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using SMNS.Infrastructure.MessageBroker;
+﻿using SMNS.Data;
+using SMNS.Data.Implementations;
+using SMNS.Data.Repositories;
+using SMNS.Domain;
 using SMNS.Infrastructure.MessageBroker.Publisher;
 using SMNS.Infrastructure.MessageBroker.Receiver;
 
@@ -16,10 +17,31 @@ namespace SMNS.App
                 .Build();
             services.AddSingleton<IConfiguration>(config);
 
-            var conn = config["Connection"];
-            services.AddScoped<CollectStatisticsTimer>();
-            services.AddScoped<IMessagePublisher>(p => new MessagePublisher(conn));
-            services.AddScoped<IMessageReceiver>(r => new MessageReceiver(conn));
+            //RABBITMQ
+            string messageBrokerConn = config["ConnectionStrings:RabbitMQ"];
+            string serverIdentifier = config["ServerStatisticsConfig:ServerIdentifier"] ?? "Unknown";
+            int samplingIntervalSeconds = int.Parse(config["ServerStatisticsConfig:SamplingIntervalSeconds"] ?? "5");
+
+            services.AddSingleton<IMessagePublisher>(p => new MessagePublisher(messageBrokerConn));
+            services.AddSingleton<IMessageReceiver>(r => new MessageReceiver(messageBrokerConn));
+
+            services.AddSingleton(sp =>
+            {
+                var publisher = sp.GetRequiredService<IMessagePublisher>();
+                return new StastisticsPublisherTimer(publisher, serverIdentifier, samplingIntervalSeconds);
+            });
+
+            //MONGODB
+            var dbConn = config["MongoDB:ConnectionString"];
+            var dbName = config["MongoDB:DatabaseName"];
+
+            services.AddSingleton<MongoDBClient>(c => new MongoDBClient(dbConn, dbName));
+            services.AddSingleton<IServerStatisticsRepository, ServerStatisticsRepository>();
+            services.AddSingleton<IServerStatisticsService, ServerStatisticsService>();
+
+            //SignalR
+            services.AddSignalR();
+            services.AddSingleton<INotificationService, NotificationService>();
             return services;
         }
     }
